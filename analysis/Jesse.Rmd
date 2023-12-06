@@ -5,20 +5,63 @@ author: Jesse Dykes
 ---
 
 ```{r}
-library(here)
-library(lubridate)
+library(knitr)
+library(tidyverse)
 library(janitor)
-library()
+library(lubridate) # because we will probably see some dates
+library(here) # more easily access files in your project
+library(sf) # working with simple features - geospatial
+library(tmap)
+library(tidycensus)
 ```
 
 
 ```{r}
-file = readxl::read_excel()
+bikes = (read.csv(here("data_raw", "202309-capitalbikeshare-tripdata.csv")))
+dfShops = st_read(here("data_raw","Shopping_Centers.geojson")) |> clean_names()
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
+bike_s = bikes |> slice_sample(n = 100 )
+shops = dfShops |> select(geometry,name)
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+```{r}
+census_api_key("9fc5d3792d3a5e922287c3f4e9995118766d50a2")
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```
+```{r}
+v2018 = load_variables(2018, "acs5")
+```
+
+```{r}
+
+df_cencus=get_acs(geography = "tract",
+                  variables=c("vehicles"="B08141_001",
+                              "population" = "B01001_001",
+                              "walked" = "B08541_021"),
+                  state="DC",geometry=TRUE,year=2021) 
+
+df_cens=df_cencus %>% 
+  select(-moe) %>% 
+  pivot_wider(names_from = "variable", 
+              values_from = "estimate")
+
+df_cens = df_cens |>
+  mutate("v_to_p" = vehicles / population)
+
+df_cens_adj = df_cens |> st_transform(4326)
+```
+
+```{r}
+
+tmap_mode("view")
+
+tm_shape(df_cens) +tm_polygons(c("v_to_p", "population"), alpha=.5) + tm_shape(shops) + tm_symbols(size = 0.01)
+
+```
+
+```{r}
+
+```
 
