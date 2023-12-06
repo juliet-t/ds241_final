@@ -1,0 +1,9 @@
+---
+title: "Team Contribution"
+Author: "Juliet Thistleton, Jason Ofosu-Mensah, Yadhira Garcia, Jesse Dykes"
+output: html_notebook
+---
+
+The contributions to this project are as follows:
+
+JT: 
