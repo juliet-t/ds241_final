@@ -41,7 +41,7 @@ bikes = (read.csv(here("data_raw", "202309-capitalbikeshare-tripdata.csv"))) |> 
 # Read in the Public Bike Rac
 
 ```{r}
-racks = st_read((here("data_raw", "Public_Bike_Racks.geojson"))) |> clean_names() 
+racks = st_read((here("data_raw", "Capital_Bikeshare_Locations.geojson"))) |> clean_names() 
 ```
  
 # Api Key to access the census data
@@ -68,10 +68,8 @@ For this analysis, we will need the amount of vehiclces used in a specific locat
 # Make sure our data frames plot
 
 ```{r}
-
 plot(df_censcus)
 plot(racks)
-
 ```
 
 # Make each observation of vehicles, population, and public transportation into their own columns
@@ -100,15 +98,15 @@ df_cens_adj = df_cens |> st_transform(4326)
 bike_routes = st_as_sf(bike_routes, crs=st_crs(df_cens_adj))
 
 racks = st_as_sf(racks, crs=st_crs(df_cens_adj))
-tm_shape(df_cens) +tm_polygons(c("pub_pop", "v_pop"), alpha=.5) + tm_shape(racks) +tm_symbols(size = 0.01, alpha = 0.5) +   
+tm_shape(df_cens) +tm_polygons(c("pub_pop", "v_pop"), alpha=.5) + tm_shape(racks) +tm_symbols(size = 0.1, alpha = 0.5) +   
 tm_shape(bike_routes) + tm_lines(col="blue",lwd=1,alpha= 1)
 ```
 
-
+Here, we see two maps of Washington D.C. The map on the right shows the population proportion of people who use public transportation (excluding taxicub), and on the right we see a the population proportion of people who own vehicles. The assumption is that they use these vehicles as the primary method to commute to work, school, or other transportation needs. On both of the maps, the blue lines represent signed bike routes routes. The assumption is that the primary target areas to put more bike share stations should be where the bikes would be the most accessible to ride on. Signed bike routes mean that those areas are most likely the more safe areas to ride bikes in, and the area around would be most accomadating to bike riders. The circles on each map represents the current bike share locations. 
 
 # Data Sources:
 
-Public Bike Racks: https://opendata.dc.gov/explore?collection=Dataset&query=Public%20Bike%20Racks
+Capital Bike Share Bike Racks: https://opendata.dc.gov/datasets/a1f7acf65795451d89f0a38565a975b3_5/about
 Bike Share Data: https://capitalbikeshare.com/system-data
 Signed Bike Routes: https://opendata.dc.gov/explore?collection=Dataset&query=Bike%20Routes
 
