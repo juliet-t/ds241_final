@@ -1,0 +1,106 @@
+---
+title: "Jason"
+author: "Jason Ofosu-Mensah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+#We use the following libraires below:
+```{r}
+library(knitr)# We would want to
+library(tidyverse)
+library(janitor)
+library(lubridate) # because we will probably see some dates
+library(here) # more easily access files in your project
+library(sf) # working with simple features - geospatial
+library(tmap)
+library(tidycensus)
+```
+#
+```{r}
+bykes = (read.csv(here("Data_Raw","202309-capitalbikeshare-tripdata.csv"))) |> clean_names() 
+
+Parks_N_Recs <- st_read(here("Data_Raw","Parks_and_Recreation_Areas.geojson")) |> clean_names()
+
+Museuems <- st_read(here("Data_Raw","Museums.geojson")) |> clean_names()
+
+Side_Walk_Cafe <- st_read(here("Data_Raw","Sidewalk_Cafe.geojson")) |> clean_names()
+
+view(Parks_N_Recs)
+view(Museuems)
+view(Side_Walk_Cafe)
+
+```
+
+```{r}
+
+bykes_sliced <- bykes|> slice_sample(n=100)
+view(bykes_sliced)
+```
+
+```{r eval=FALSE, include=FALSE, install = TRUE}
+census_api_key("8adcbab0823170535252fcf4c508e9cf0bfd09dc")
+```
+```{r}
+v2018 <- load_variables(2018,"acs5")
+```
+```{r}
+df_census <- get_acs(geography = "tract",
+                    variables = c("vehicles"="B08141_001",
+  "population"="B01001_001",
+  "public_transportation" = "B08006_008"),
+  state ="DC",geometry = TRUE,year = 2021)
+```
+```{r}
+plot(df_census)
+plot(Parks_N_Recs)
+plot()
+plot()
+
+```
+
+```{r}
+tmap_mode("view")
+
+df_census_Pop = df_census %>%
+  select(-moe) %>%
+  pivot_wider(names_from = "variable",
+              values_from = "estimate")|>
+  mutate(pub_pop = public_transportation / population, v_pop = vehicles / population)
+
+
+```
+
+```{r}
+recs = st_read((here("Data_Raw","Recreation_Facilities.geojson"))) |> clean_names()
+
+view(recs)
+```
+
+```{r}
+df_census_adjust = df_census |> st_transform(4326)
+Parks_N_Recs = st_as_sf(Parks_N_Recs,crs = st_crs(df_census_adjust))
+
+Parks_N_Recs = st_as_sf(Parks_N_Recs,crs=st_crs(df_census_adjust))
+Museuems = st_as_sf(Museuems,crs=st_crs(df_census_adjust))
+tm_shape(df_census_Pop) + tm_polygons(c("pub_pop","v_pop"),alpha = .5) + tm_shape(recs)+ tm_symbols(col = "green", size=0.008,alpha = 0.5) + tm_shape(Museuems)+ tm_symbols(col = "violet", size=0.008,alpha = 0.5)
+```
+
+
+
+
+
+
+
+#Data Refernced
+
+Museums: https://opendata.dc.gov/datasets/2e65fc16edc3481989d2cc17e6f8c533_54/explore?location=38.908237%2C-77.029335%2C13.31
+
+Side-Walk Cafe: 
+https://opendata.dc.gov/datasets/58562a06412e43b9acb2515010818b0a_28/explore?location=38.899411%2C-77.011752%2C11.61
+
+Parks and recreations:
+https://opendata.dc.gov/datasets/DCGIS::parks-and-recreation-areas/explore?location=38.898985%2C-76.948888%2C12.49
+
+Recreation Facilities:
+https://opendata.dc.gov/datasets/7122c1c815314588abe5c1864da8a355_3/explore
+
