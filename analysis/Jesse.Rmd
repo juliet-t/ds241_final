@@ -18,7 +18,12 @@ library(tidycensus)
 
 ```{r}
 bikes = (read.csv(here("data_raw", "202309-capitalbikeshare-tripdata.csv")))
+racks = st_read(here("data_raw", "Public_Bike_Racks.geojson")) |> clean_names()
+```
+
+```{r}
 dfShops = st_read(here("data_raw","Shopping_Centers.geojson")) |> clean_names()
+pub_schools = st_read(here("data_raw", "DC_Public_Schools.geojson")) |> clean_names()
 ```
 
 ```{r}
@@ -39,7 +44,7 @@ v2018 = load_variables(2018, "acs5")
 df_cencus=get_acs(geography = "tract",
                   variables=c("vehicles"="B08141_001",
                               "population" = "B01001_001",
-                              "walked" = "B08541_021"),
+                              "public_transportion" = "B08006_008"),
                   state="DC",geometry=TRUE,year=2021) 
 
 df_cens=df_cencus %>% 
@@ -48,7 +53,7 @@ df_cens=df_cencus %>%
               values_from = "estimate")
 
 df_cens = df_cens |>
-  mutate("v_to_p" = vehicles / population)
+  mutate("v_to_p" = vehicles / population, "pub_transport_to_p" = public_transportion / population)
 
 df_cens_adj = df_cens |> st_transform(4326)
 ```
@@ -57,8 +62,7 @@ df_cens_adj = df_cens |> st_transform(4326)
 
 tmap_mode("view")
 
-tm_shape(df_cens) +tm_polygons(c("v_to_p", "population"), alpha=.5) + tm_shape(shops) + tm_symbols(size = 0.01)
-
+tm_shape(df_cens) +tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm_shape(shops) + tm_dots(col = "#FF3300", size = 0.1, alpha = 0.5) + tm_shape(racks) + tm_dots(col = "#AEEDE2", size = 0.06, alpha = 0.5)
 ```
 
 ```{r}
