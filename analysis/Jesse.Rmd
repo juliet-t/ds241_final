@@ -4,64 +4,124 @@ output: html_notebook
 author: Jesse Dykes
 ---
 
+Loading necessary packages
+
 ```{r}
 library(knitr)
 library(tidyverse)
 library(janitor)
-library(lubridate) # because we will probably see some dates
 library(here) # more easily access files in your project
 library(sf) # working with simple features - geospatial
 library(tmap)
 library(tidycensus)
+library(proxy)
 ```
+Knitr is used for properly transforming the r notebook into an html file.
+The tidyverse is used to tidy data using other packages within in such as dplyr.
+The janitor packages is used to clean up the variable names from the data sets.
+The here library is used to locate files on the computer to make it easier to load in the data sets.
+The sf library is used to work with spatial data.
+The tmap library is used to create interaactive maps.
+The tidycensus data is used to get data from the U.S Census Bureau data via codes. 
 
+
+Load in Bikeshare system data and simplify the distance dataframe
 
 ```{r}
-bikes = (read.csv(here("data_raw", "202309-capitalbikeshare-tripdata.csv")))
+racks = st_read(here("data_raw", "Capital_Bikeshare_Locations.geojson")) |> clean_names()
+rack_d = read.csv(here("data_raw", "Capital_Bikeshare_Locations.csv" )) |> clean_names()
+rack_d = rack_d |> select(x,y,name)
+```
+Load DC data as spacial data and regular data for distance analysis
+
+```{r}
 dfShops = st_read(here("data_raw","Shopping_Centers.geojson")) |> clean_names()
+shops_d = read.csv(here("data_raw", "Shopping_Centers.csv" )) |> clean_names()
+
+pub_schools = st_read(here("data_raw", "DC_Public_Schools.geojson")) |> clean_names()
+p_sch_d = read.csv(here("data_raw", "DC_Public_Schools.csv" )) |> clean_names()
+
+ind_schools = st_read(here("data_raw", "Independent_Schools.geojson")) |> clean_names()
+i_sch_d = read.csv(here("data_raw", "Independent_Schools.csv" )) |> clean_names()
 ```
 
+Simplify shops and schools dataframes
+
 ```{r}
-bike_s = bikes |> slice_sample(n = 100 )
 shops = dfShops |> select(geometry,name)
+shops_d = shops_d |> select(x,y,name)
+
+p_sch = pub_schools |> select(geometry,name)
+p_sch_d = p_sch_d |> select(longitude,latitude,name)
+
+i_sch = ind_schools |> select(geometry,name)
+i_sch_d = i_sch_d |> select(longitude,latitude,name)
 ```
+
+Api Key to access the census data
 
 ```{r}
 census_api_key("9fc5d3792d3a5e922287c3f4e9995118766d50a2")
-
 ```
+Load census data
+
 ```{r}
 v2018 = load_variables(2018, "acs5")
 ```
+
+Import specific census data:
+
+Vehicles per neighborhood
+Population per neighborhood
+Amount of those that use public transportation per neighborhood
+
+Filter for DC and keep neighborhood shapes
+Filter for years 2017-2021
 
 ```{r}
 
 df_cencus=get_acs(geography = "tract",
                   variables=c("vehicles"="B08141_001",
                               "population" = "B01001_001",
-                              "walked" = "B08541_021"),
+                              "public_transportion" = "B08006_008"),
                   state="DC",geometry=TRUE,year=2021) 
+```
 
+Clean census data
+Add columns for ratios of: 
+  vehicles to population
+  public transport users to population
+Adjust the spacial data for coordinate system 4326
+
+```{r}
 df_cens=df_cencus %>% 
   select(-moe) %>% 
   pivot_wider(names_from = "variable", 
               values_from = "estimate")
 
 df_cens = df_cens |>
-  mutate("v_to_p" = vehicles / population)
+  mutate("v_to_p" = vehicles / population, "pub_transport_to_p" = public_transportion / population)
 
 df_cens_adj = df_cens |> st_transform(4326)
 ```
+
+Turn on the interactive map from tmap
+
+Plot the modified census data
+Plot the positions of:
+  bikeshare stations (transparent teal)
+  shopping areas (red)
+  public schools (pink)
+  independent schools (violet)
 
 ```{r}
 
 tmap_mode("view")
 
-tm_shape(df_cens) +tm_polygons(c("v_to_p", "population"), alpha=.5) + tm_shape(shops) + tm_symbols(size = 0.01)
-
+tm_shape(df_cens) +tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm_shape(shops) + tm_dots(col = "#FF1300", size = 0.1) + tm_shape(racks) + tm_dots(col = "#AEEDE2", size = 0.06, alpha = 0.5) + tm_shape(p_sch) + tm_dots(col = "#FE2DE2", size = 0.06) + tm_shape(i_sch) + tm_dots(col = "#602DE2", size = 0.06)
 ```
 
 ```{r}
-
+d = dist()
 ```
 
