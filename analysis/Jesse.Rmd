@@ -155,13 +155,23 @@ schoolmins = rbind(ird_mins,prd_mins)
 ```
 
 ```{r}
-allmins |> ggplot(aes(x=min_dist, fill = type)) + geom_histogram(binwidth = 50) + ggtitle("All locations")
-schoolmins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50) + ggtitle("All schools")
+allmins |> ggplot(aes(x=min_dist, fill = type)) + geom_histogram(binwidth = 50) + ggtitle("All locations") + xlab("Meters from Nearest Bikestation") + theme_dark()
+```
 
-srd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50) + ggtitle("Shops")
 
-prd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50) + ggtitle("Public Schools")
+```{r}
+schoolmins |> ggplot(aes(x=min_dist, fill)) + geom_histogram(binwidth = 50) + ggtitle("All schools") +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+```
 
-ird_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50) + ggtitle("Independent Schools")
+```{r}
+srd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "skyblue") + ggtitle("Shops") +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+
+prd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "green") + ggtitle("Public Schools") +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+
+ird_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "tomato") + 
+  ggtitle("Independent Schools") + xlab("Meters from Nearest Bikestation") + theme_dark()
 ```
 
