@@ -14,7 +14,7 @@ library(here) # more easily access files in your project
 library(sf) # working with simple features - geospatial
 library(tmap)
 library(tidycensus)
-library(proxy)
+library(matrixStats)
 ```
 Knitr is used for properly transforming the r notebook into an html file.
 The tidyverse is used to tidy data using other packages within in such as dplyr.
@@ -29,6 +29,8 @@ Load in Bikeshare system data and simplify the distance dataframe
 
 ```{r}
 racks = st_read(here("data_raw", "Capital_Bikeshare_Locations.geojson")) |> clean_names()
+racks = racks |> select(geometry,name)
+
 rack_d = read.csv(here("data_raw", "Capital_Bikeshare_Locations.csv" )) |> clean_names()
 rack_d = rack_d |> select(x,y,name)
 ```
@@ -121,7 +123,10 @@ tmap_mode("view")
 tm_shape(df_cens) +tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm_shape(shops) + tm_dots(col = "#FF1300", size = 0.1) + tm_shape(racks) + tm_dots(col = "#AEEDE2", size = 0.06, alpha = 0.5) + tm_shape(p_sch) + tm_dots(col = "#FE2DE2", size = 0.06) + tm_shape(i_sch) + tm_dots(col = "#602DE2", size = 0.06)
 ```
 
+
 ```{r}
-d = dist()
+d = st_distance(racks,shops)
+
+dmin = colMins(d)
 ```
 
