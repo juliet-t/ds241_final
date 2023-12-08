@@ -14,6 +14,7 @@ library(here) # more easily access files in your project
 library(sf) # working with simple features - geospatial
 library(tmap)
 library(tidycensus)
+library(proxy)
 ```
 Knitr is used for properly transforming the r notebook into an html file.
 The tidyverse is used to tidy data using other packages within in such as dplyr.
@@ -30,19 +31,24 @@ Load in Bikeshare system data
 bikes = (read.csv(here("data_raw", "202309-capitalbikeshare-tripdata.csv")))
 racks = st_read(here("data_raw", "Capital_Bikeshare_Locations.geojson")) |> clean_names()
 ```
-Load DC data
+Load DC data as spacial data and regular data for distance analysis
 
 ```{r}
 dfShops = st_read(here("data_raw","Shopping_Centers.geojson")) |> clean_names()
+
+
 pub_schools = st_read(here("data_raw", "DC_Public_Schools.geojson")) |> clean_names()
+att = read.csv(here("data_raw", "DC_Public_Schools.csv" )) |> clean_names()
+
 ind_schools = st_read(here("data_raw", "Independent_Schools.geojson")) |> clean_names()
 ```
 Sample bike data 
 Simplify shops and schools dataframes
 
 ```{r}
-bike_s = bikes |> slice_sample(n = 100 )
+bike_s = bikes |> slice_sample(n = 100)
 shops = dfShops |> select(geometry,name)
+
 p_sch = pub_schools |> select(geometry,name)
 i_sch = ind_schools |> select(geometry,name)
 ```
