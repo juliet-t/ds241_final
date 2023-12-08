@@ -101,7 +101,15 @@ tm_shape(df_cens) +tm_polygons(c("pub_pop", "v_pop"), alpha=.5) + tm_shape(racks
 tm_shape(bike_routes) + tm_lines(col="blue",lwd=1,alpha= 1)
 ```
 
-Here, we see two maps of Washington D.C. The map on the right shows the population proportion of people who use public transportation (excluding taxi-cabs), and on the right we see a the population proportion of people who own vehicles. The assumption is that they use these vehicles as the primary method to commute to work, school, or other transportation needs. On both of the maps, the blue lines represent signed bike routes routes. The assumption is that the primary target areas to put more bike share stations should be where the bikes would be the most accessible to ride on. Signed bike routes mean that those areas are most likely the more safe areas to ride bikes in, and the area around would be most accommodating to bike riders. The circles on each map represents the current bike share locations. 
+Here, we see two maps of Washington D.C. The map on the right shows the population proportion of 
+people who use public transportation (excluding taxi-cabs), and on the right we see a the 
+population proportion of people who own vehicles. The assumption is that they use these vehicles 
+as the primary method to commute to work, school, or other transportation needs. On both of the 
+maps, the blue lines represent signed bike routes routes. The assumption is that the primary 
+target areas to put more bike share stations should be where the bikes would be the most 
+accessible to ride on. Signed bike routes mean that those areas are most likely the more safe 
+areas to ride bikes in, and the area around would be most accommodating to bike riders. The 
+circles on each map represents the current bike share locations. 
 
 _________________________________________________________________________________________________
 
@@ -228,7 +236,15 @@ ird_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "tom
   theme_dark()
 ```
 
-The histograms above show the relative distance of different notable types of locations to the nearest bikeshare station. The distance is measured in meters. The locations were chosen as possibly overlooked impacts/untapped potential for greater ridership. Science Daily also reported that a decrease in the distance that people need to travel to access bikeshare stations could potentially increase ridership by a significant amount. Combining these two ideas, placing bike stations closer to these locations could boost ridership greatly. People who need to go to the store to quickly grab an item or 2 and kids that can't rely on their parents for timely pickups would be the desired impact groups, though other situations may impact someone's usage of the bikeshare system closer to schools and stores.
+The histograms above show the relative distance of different notable types of locations to the
+nearest bikeshare station. The distance is measured in meters. The locations were chosen as
+possibly overlooked impacts/untapped potential for greater ridership. Science Daily also reported
+that a decrease in the distance that people need to travel to access bikeshare stations could 
+potentially increase ridership by a significant amount. Combining these two ideas, placing bike 
+stations closer to these locations could boost ridership greatly. People who need to go to the 
+store to quickly grab an item or 2 and kids that can't rely on their parents for timely pickups 
+would be the desired impact groups, though other situations may impact someone's usage of the 
+bikeshare system closer to schools and stores.
 
 _________________________________________________________________________________________________
 
