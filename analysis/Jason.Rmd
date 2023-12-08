@@ -17,17 +17,21 @@ library(tidycensus)
 ```
 #
 ```{r}
-bykes = (read.csv(here("Data_Raw","202309-capitalbikeshare-tripdata.csv"))) |> clean_names() 
+bykes = (read.csv(here("data_raw","202309-capitalbikeshare-tripdata.csv"))) |> clean_names() 
 
-Parks_N_Recs <- st_read(here("Data_Raw","Parks_and_Recreation_Areas.geojson")) |> clean_names()
+Parks_N_Recs <- st_read(here("data_raw","Parks_and_Recreation_Areas.geojson")) |> clean_names()
 
-Museuems <- st_read(here("Data_Raw","Museums.geojson")) |> clean_names()
+Museuems <- st_read(here("data_raw","Museums.geojson")) |> clean_names()
 
-Side_Walk_Cafe <- st_read(here("Data_Raw","Sidewalk_Cafe.geojson")) |> clean_names()
+bracks <- st_read(here("data_raw","Public_Bike_Racks.geojson")) |> clean_names()
+
+#Side_Walk_Cafe <- st_read(here("data_raw","Sidewalk_Cafe.geojson")) |> clean_names()
 
 view(Parks_N_Recs)
 view(Museuems)
-view(Side_Walk_Cafe)
+#view(Side_Walk_Cafe)
+
+view(bracks)
 
 ```
 
@@ -39,6 +43,7 @@ view(bykes_sliced)
 
 ```{r eval=FALSE, include=FALSE, install = TRUE}
 census_api_key("8adcbab0823170535252fcf4c508e9cf0bfd09dc")
+view(v2018)
 ```
 ```{r}
 v2018 <- load_variables(2018,"acs5")
@@ -53,9 +58,8 @@ df_census <- get_acs(geography = "tract",
 ```{r}
 plot(df_census)
 plot(Parks_N_Recs)
-plot()
-plot()
-
+plot(Museuems)
+plot(bracks)
 ```
 
 ```{r}
@@ -71,23 +75,20 @@ df_census_Pop = df_census %>%
 ```
 
 ```{r}
-recs = st_read((here("Data_Raw","Recreation_Facilities.geojson"))) |> clean_names()
-
-view(recs)
-```
-
-```{r}
 df_census_adjust = df_census |> st_transform(4326)
 Parks_N_Recs = st_as_sf(Parks_N_Recs,crs = st_crs(df_census_adjust))
-
-Parks_N_Recs = st_as_sf(Parks_N_Recs,crs=st_crs(df_census_adjust))
+bracks = st_as_sf(bracks,crs=st_crs(df_census_adjust))
 Museuems = st_as_sf(Museuems,crs=st_crs(df_census_adjust))
-tm_shape(df_census_Pop) + tm_polygons(c("pub_pop","v_pop"),alpha = .5) + tm_shape(recs)+ tm_symbols(col = "green", size=0.008,alpha = 0.5) + tm_shape(Museuems)+ tm_symbols(col = "violet", size=0.008,alpha = 0.5)
+
+tm_shape(df_census_Pop) + tm_polygons(c("pub_pop","v_pop"),alpha = .5) + tm_shape(Parks_N_Recs)+
+tm_symbols(col = "green", size=0.08,alpha = 0.5) + tm_shape(Museuems)+ tm_symbols(col = "violet",
+  size=0.08,alpha = 0.5) + tm_shape(bracks)+ tm_dots(col = "red", size=0.004,alpha = 0.5)
 ```
 
 
+```{r}
 
-
+```
 
 
 
@@ -95,12 +96,7 @@ tm_shape(df_census_Pop) + tm_polygons(c("pub_pop","v_pop"),alpha = .5) + tm_shap
 
 Museums: https://opendata.dc.gov/datasets/2e65fc16edc3481989d2cc17e6f8c533_54/explore?location=38.908237%2C-77.029335%2C13.31
 
-Side-Walk Cafe: 
-https://opendata.dc.gov/datasets/58562a06412e43b9acb2515010818b0a_28/explore?location=38.899411%2C-77.011752%2C11.61
 
 Parks and recreations:
 https://opendata.dc.gov/datasets/DCGIS::parks-and-recreation-areas/explore?location=38.898985%2C-76.948888%2C12.49
-
-Recreation Facilities:
-https://opendata.dc.gov/datasets/7122c1c815314588abe5c1864da8a355_3/explore
 
