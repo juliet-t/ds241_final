@@ -106,7 +106,7 @@ tm_shape(bike_routes) + tm_lines(col="blue",lwd=1,alpha= 1)
 
 Here, we see two maps of Washington D.C. The map on the right shows the population proportion of people who use public transportation (excluding taxicab), and on the right we see a the population proportion of people who own vehicles. The assumption is that they use these vehicles as the primary method to commute to work, school, or other transportation needs. On both of the maps, the blue lines represent signed bike routes routes. The assumption is that the primary target areas to put more bike share stations should be where the bikes would be the most accessible to ride on. Signed bike routes mean that those areas are most likely the more safe areas to ride bikes in, and the area around would be most accommodating to bike riders. The circles on each map represents the current bike share locations. 
 
-From this map, it would seem that one of the more useful places to place bike would be in East Potomac Park. 
+From this map, it would seem that one of the more useful places to place bike would be in East Potomac Park, as well as in other parks around Washington DC because of the people who would like to ride around the park for leisure. 
 # Data Sources:
 
 Capital Bike Share Bike Racks: https://opendata.dc.gov/datasets/a1f7acf65795451d89f0a38565a975b3_5/about
