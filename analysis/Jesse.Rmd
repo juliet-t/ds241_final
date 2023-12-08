@@ -165,13 +165,18 @@ schoolmins |> ggplot(aes(x=min_dist, fill)) + geom_histogram(binwidth = 50) + gg
 ```
 
 ```{r}
-srd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "skyblue") + ggtitle("Shops") +
+srd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "skyblue") + ggtitle("Shops") + ylim(0,25) +
   xlab("Meters from Nearest Bikestation") + theme_dark()
 
-prd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "green") + ggtitle("Public Schools") +
+prd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "green") + ggtitle("Public Schools") + ylim(0,25) +
   xlab("Meters from Nearest Bikestation") + theme_dark()
 
 ird_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "tomato") + 
-  ggtitle("Independent Schools") + xlab("Meters from Nearest Bikestation") + theme_dark()
+  ggtitle("Independent Schools") + xlab("Meters from Nearest Bikestation") + ylim(0,25) + 
+  theme_dark()
+```
+
+```{r}
+min(ird_mins["min_dist"])
 ```
 
