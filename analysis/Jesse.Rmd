@@ -109,7 +109,7 @@ Plot the positions of:
 
 tmap_mode("view")
 
-tm_shape(df_cens) +tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm_shape(shops) + tm_dots(col = "#FF1300", size = 0.1) + tm_shape(racks) + tm_dots(col = "#AEEDE2", size = 0.06, alpha = 0.5) + tm_shape(p_sch) + tm_dots(col = "#FE2DE2", size = 0.06) + tm_shape(i_sch) + tm_dots(col = "#602DE2", size = 0.06)
+tm_shape(df_cens) + tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm_shape(shops) + tm_dots(col = "#FF1300", size = 0.1) + tm_shape(racks) + tm_dots(col = "#AEEDE2", size = 0.06, alpha = 0.5) + tm_shape(p_sch) + tm_dots(col = "#FE2DE2", size = 0.06) + tm_shape(i_sch) + tm_dots(col = "#602DE2", size = 0.06)
 ```
 
 # Find the distance deltas

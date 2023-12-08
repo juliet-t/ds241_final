@@ -18,6 +18,7 @@ library(here)
 library(sf) 
 library(tmap)
 library(tidycensus)
+library(sp)
 ```
 Knitr is used for properly transforming the r notebook into an html file.
 The tidyverse is used to tidy data using other packages within in such as dplyr.
@@ -26,6 +27,7 @@ The here library is used to locate files on the computer to make it easier to lo
 The sf library is used to work with spatial data.
 The tmap library is used to create interaactive maps.
 The tidycensus data is used to get data from the U.S Census Bureau data via codes. 
+The sp library allows for the use of CRS to convert degree measurements into meters.
 
 ## Read in the captial bike share data
 
@@ -100,6 +102,136 @@ tm_shape(bike_routes) + tm_lines(col="blue",lwd=1,alpha= 1)
 ```
 
 Here, we see two maps of Washington D.C. The map on the right shows the population proportion of people who use public transportation (excluding taxi-cabs), and on the right we see a the population proportion of people who own vehicles. The assumption is that they use these vehicles as the primary method to commute to work, school, or other transportation needs. On both of the maps, the blue lines represent signed bike routes routes. The assumption is that the primary target areas to put more bike share stations should be where the bikes would be the most accessible to ride on. Signed bike routes mean that those areas are most likely the more safe areas to ride bikes in, and the area around would be most accommodating to bike riders. The circles on each map represents the current bike share locations. 
+
+
+# Load DC location data
+
+Load in files from locations of interest:
+  Shopping centers
+  Public schools
+  Independent schools
+
+```{r}
+dfShops = st_read(here("data_raw","Shopping_Centers.geojson")) |> clean_names()
+pub_schools = st_read(here("data_raw", "DC_Public_Schools.geojson")) |> clean_names()
+ind_schools = st_read(here("data_raw", "Independent_Schools.geojson")) |> clean_names()
+```
+
+# Simplify shops and schools dataframes
+
+```{r}
+shops = dfShops |> select(geometry,name)
+p_sch = pub_schools |> select(geometry,name)
+i_sch = ind_schools |> select(geometry,name)
+```
+
+
+# Find the distance deltas
+
+Use CRS to convert global degrees into meter measurements
+Find the distance between each location of shops and schools and 
+each bikeshare station
+
+```{r}
+crs <- CRS("+init=epsg:4326")
+
+s_rack_d = st_distance(racks,shops)
+isch_rack_d = st_distance(racks,i_sch)
+psch_rack_d = st_distance(racks,p_sch)
+
+```
+
+# Find shop minimums
+
+Filter the distances for the minimum value and append the corresponding shop
+names to the values
+Define the dataframe's type as 'shops'
+
+```{r}
+s_n = shops |> 
+  st_drop_geometry() |> 
+  mutate(type = "shops")
+min_dist = colMins(s_rack_d)
+srd_mins = cbind.data.frame(s_n,min_dist)
+```
+
+# Find public school minimums
+
+Filter the distances for the minimum value and append the corresponding school
+names to the values
+Define the dataframe's type as 'public'
+
+```{r}
+p_n = p_sch |> 
+  st_drop_geometry() |> 
+  mutate(type = "public")
+min_dist = colMins(psch_rack_d)
+prd_mins = cbind.data.frame(p_n,min_dist)
+```
+
+# Find independent school minimums
+
+Filter the distances for the minimum value and append the corresponding school
+names to the values
+Define the dataframe's type as 'independent'
+
+```{r}
+i_n = i_sch |> 
+  st_drop_geometry() |> 
+  mutate(type = "independent")
+min_dist = colMins(isch_rack_d)
+ird_mins = cbind.data.frame(i_n,min_dist)
+```
+
+# Combine dataframes
+
+Combine all the dataframes into 'allmins'
+
+Combine the school dataframes into 'schoolmins'
+
+```{r}
+allmins = rbind(srd_mins,ird_mins,prd_mins)
+
+schoolmins = rbind(ird_mins,prd_mins)
+```
+
+# Plot
+
+Plot the various dataframes as histograms to show the relative distances each type 
+of location is from the nearest bikeshare station
+
+Plot all and color by type
+
+```{r}
+allmins |> ggplot(aes(x=min_dist, fill = type)) + geom_histogram(binwidth = 50) + ggtitle("All locations") + xlab("Meters from Nearest Bikestation") + theme_dark()
+```
+
+Plot schools and color by type
+
+```{r}
+schoolmins |> ggplot(aes(x=min_dist, fill = type)) + geom_histogram(binwidth = 50) + ggtitle("All schools") +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+```
+
+Plot the individual location dataframes and color similarly to the 'allmins' plot
+
+```{r}
+srd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "skyblue") + ggtitle("Shops") + ylim(0,25) +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+
+prd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "green") + ggtitle("Public Schools") + ylim(0,25) +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+
+ird_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "tomato") + 
+  ggtitle("Independent Schools") + xlab("Meters from Nearest Bikestation") + ylim(0,25) + 
+  theme_dark()
+```
+
+These histo
+
+
+
+
 
 
 

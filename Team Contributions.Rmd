@@ -7,3 +7,5 @@ output: html_notebook
 The contributions to this project are as follows:
 
 JT: 
+
+JD:
