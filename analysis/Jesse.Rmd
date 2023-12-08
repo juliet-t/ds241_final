@@ -25,32 +25,37 @@ The tmap library is used to create interaactive maps.
 The tidycensus data is used to get data from the U.S Census Bureau data via codes. 
 
 
-Load in Bikeshare system data
+Load in Bikeshare system data and simplify the distance dataframe
 
 ```{r}
-bikes = (read.csv(here("data_raw", "202309-capitalbikeshare-tripdata.csv")))
 racks = st_read(here("data_raw", "Capital_Bikeshare_Locations.geojson")) |> clean_names()
+rack_d = read.csv(here("data_raw", "Capital_Bikeshare_Locations.csv" )) |> clean_names()
+rack_d = rack_d |> select(x,y,name)
 ```
 Load DC data as spacial data and regular data for distance analysis
 
 ```{r}
 dfShops = st_read(here("data_raw","Shopping_Centers.geojson")) |> clean_names()
-
+shops_d = read.csv(here("data_raw", "Shopping_Centers.csv" )) |> clean_names()
 
 pub_schools = st_read(here("data_raw", "DC_Public_Schools.geojson")) |> clean_names()
-att = read.csv(here("data_raw", "DC_Public_Schools.csv" )) |> clean_names()
+p_sch_d = read.csv(here("data_raw", "DC_Public_Schools.csv" )) |> clean_names()
 
 ind_schools = st_read(here("data_raw", "Independent_Schools.geojson")) |> clean_names()
+i_sch_d = read.csv(here("data_raw", "Independent_Schools.csv" )) |> clean_names()
 ```
-Sample bike data 
+
 Simplify shops and schools dataframes
 
 ```{r}
-bike_s = bikes |> slice_sample(n = 100)
 shops = dfShops |> select(geometry,name)
+shops_d = shops_d |> select(x,y,name)
 
 p_sch = pub_schools |> select(geometry,name)
+p_sch_d = p_sch_d |> select(longitude,latitude,name)
+
 i_sch = ind_schools |> select(geometry,name)
+i_sch_d = i_sch_d |> select(longitude,latitude,name)
 ```
 
 Api Key to access the census data
@@ -117,6 +122,6 @@ tm_shape(df_cens) +tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm
 ```
 
 ```{r}
-
+d = dist()
 ```
 
