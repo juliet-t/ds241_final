@@ -25,12 +25,9 @@ Museuems <- st_read(here("data_raw","Museums.geojson")) |> clean_names()
 
 bracks <- st_read(here("data_raw","Public_Bike_Racks.geojson")) |> clean_names()
 
-#Side_Walk_Cafe <- st_read(here("data_raw","Sidewalk_Cafe.geojson")) |> clean_names()
 
 view(Parks_N_Recs)
 view(Museuems)
-#view(Side_Walk_Cafe)
-
 view(bracks)
 
 ```
@@ -99,4 +96,8 @@ Museums: https://opendata.dc.gov/datasets/2e65fc16edc3481989d2cc17e6f8c533_54/ex
 
 Parks and recreations:
 https://opendata.dc.gov/datasets/DCGIS::parks-and-recreation-areas/explore?location=38.898985%2C-76.948888%2C12.49
+
+Bike Racks: https://opendata.dc.gov/datasets/public-bike-racks/explore
+
+
 
