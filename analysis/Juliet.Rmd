@@ -97,10 +97,10 @@ bike_routes = st_read((here("data_raw", "Signed_Bike_Routes.geojson"))) |> clean
 ```{r}
 df_cens_adj = df_cens |> st_transform(4326)
 bike_routes = st_as_sf(bike_routes, crs=st_crs(df_cens_adj))
-df1 = st_as_sf(neigh, crs = st_crs(df_cens_adj))
+
 
 racks = st_as_sf(racks, crs=st_crs(df_cens_adj))
-tm_shape(df_cens_adj) +tm_polygons(c("pub_pop", "v_pop"), alpha=.5) + tm_shape(racks) +tm_symbols(size = 0.1, alpha = 0.5) +   
+tm_shape(df_cens_adj) +tm_polygons(c("pub_pop", "v_pop"), alpha=.5) + tm_shape(racks) +tm_dots() +   
 tm_shape(bike_routes) + tm_lines(col="blue",lwd=1,alpha= 1) 
 ```
 
