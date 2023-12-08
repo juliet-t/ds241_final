@@ -15,6 +15,14 @@ library(sf) # working with simple features - geospatial
 library(tmap)
 library(tidycensus)
 ```
+Knitr is used for properly transforming the r notebook into an html file.
+The tidyverse is used to tidy data using other packages within in such as dplyr.
+The janitor packages is used to clean up the variable names from the data sets.
+The here library is used to locate files on the computer to make it easier to load in the data sets.
+The sf library is used to work with spatial data.
+The tmap library is used to create interaactive maps.
+The tidycensus data is used to get data from the U.S Census Bureau data via codes. 
+
 
 Load in Bikeshare system data
 
