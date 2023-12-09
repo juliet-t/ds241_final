@@ -6,4 +6,6 @@ output: html_notebook
 
 The contributions to this project are as follows:
 
-JT: 
+JT: bikeshare_visualization, line 1-112 in Final_Report
+
+JD: Lines 115 - 248 

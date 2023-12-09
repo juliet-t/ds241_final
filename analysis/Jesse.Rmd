@@ -4,7 +4,7 @@ output: html_notebook
 author: Jesse Dykes
 ---
 
-Loading necessary packages
+# Loading necessary packages
 
 ```{r}
 library(knitr)
@@ -14,7 +14,8 @@ library(here) # more easily access files in your project
 library(sf) # working with simple features - geospatial
 library(tmap)
 library(tidycensus)
-library(proxy)
+library(matrixStats)
+library(sp)
 ```
 Knitr is used for properly transforming the r notebook into an html file.
 The tidyverse is used to tidy data using other packages within in such as dplyr.
@@ -23,53 +24,42 @@ The here library is used to locate files on the computer to make it easier to lo
 The sf library is used to work with spatial data.
 The tmap library is used to create interaactive maps.
 The tidycensus data is used to get data from the U.S Census Bureau data via codes. 
+The sp library allows for the use of CRS to convert degree measurements into meters.
 
-
-Load in Bikeshare system data and simplify the distance dataframe
+# Load in DC Bikeshare system data and simplify the distance dataframe
 
 ```{r}
 racks = st_read(here("data_raw", "Capital_Bikeshare_Locations.geojson")) |> clean_names()
-rack_d = read.csv(here("data_raw", "Capital_Bikeshare_Locations.csv" )) |> clean_names()
-rack_d = rack_d |> select(x,y,name)
+racks = racks |> select(geometry,name)
 ```
-Load DC data as spacial data and regular data for distance analysis
+# Load DC data
 
 ```{r}
 dfShops = st_read(here("data_raw","Shopping_Centers.geojson")) |> clean_names()
-shops_d = read.csv(here("data_raw", "Shopping_Centers.csv" )) |> clean_names()
-
 pub_schools = st_read(here("data_raw", "DC_Public_Schools.geojson")) |> clean_names()
-p_sch_d = read.csv(here("data_raw", "DC_Public_Schools.csv" )) |> clean_names()
-
 ind_schools = st_read(here("data_raw", "Independent_Schools.geojson")) |> clean_names()
-i_sch_d = read.csv(here("data_raw", "Independent_Schools.csv" )) |> clean_names()
 ```
 
-Simplify shops and schools dataframes
+# Simplify shops and schools dataframes
 
 ```{r}
 shops = dfShops |> select(geometry,name)
-shops_d = shops_d |> select(x,y,name)
-
 p_sch = pub_schools |> select(geometry,name)
-p_sch_d = p_sch_d |> select(longitude,latitude,name)
-
 i_sch = ind_schools |> select(geometry,name)
-i_sch_d = i_sch_d |> select(longitude,latitude,name)
 ```
 
-Api Key to access the census data
+# Load Api Key to access the census data
 
 ```{r}
 census_api_key("9fc5d3792d3a5e922287c3f4e9995118766d50a2")
 ```
-Load census data
+# Load census data
 
 ```{r}
 v2018 = load_variables(2018, "acs5")
 ```
 
-Import specific census data:
+# Import specific census data
 
 Vehicles per neighborhood
 Population per neighborhood
@@ -87,7 +77,8 @@ df_cencus=get_acs(geography = "tract",
                   state="DC",geometry=TRUE,year=2021) 
 ```
 
-Clean census data
+# Clean census data
+
 Add columns for ratios of: 
   vehicles to population
   public transport users to population
@@ -105,7 +96,7 @@ df_cens = df_cens |>
 df_cens_adj = df_cens |> st_transform(4326)
 ```
 
-Turn on the interactive map from tmap
+# Turn on the interactive map from tmap
 
 Plot the modified census data
 Plot the positions of:
@@ -118,10 +109,106 @@ Plot the positions of:
 
 tmap_mode("view")
 
-tm_shape(df_cens) +tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm_shape(shops) + tm_dots(col = "#FF1300", size = 0.1) + tm_shape(racks) + tm_dots(col = "#AEEDE2", size = 0.06, alpha = 0.5) + tm_shape(p_sch) + tm_dots(col = "#FE2DE2", size = 0.06) + tm_shape(i_sch) + tm_dots(col = "#602DE2", size = 0.06)
+tm_shape(df_cens) + tm_polygons(c("v_to_p", "pub_transport_to_p"), alpha=.5) + tm_shape(shops) + tm_dots(col = "#FF1300", size = 0.1) + tm_shape(racks) + tm_dots(col = "#AEEDE2", size = 0.06, alpha = 0.5) + tm_shape(p_sch) + tm_dots(col = "#FE2DE2", size = 0.06) + tm_shape(i_sch) + tm_dots(col = "#602DE2", size = 0.06)
 ```
+
+# Find the distance deltas
+
+Use CRS to convert global degrees into meter measurements
+Find the distance between each location of shops and schools and 
+each bikeshare station
 
 ```{r}
-d = dist()
+crs <- CRS("+init=epsg:4326")
+
+s_rack_d = st_distance(racks,shops)
+isch_rack_d = st_distance(racks,i_sch)
+psch_rack_d = st_distance(racks,p_sch)
+
 ```
 
+# Find shop minimums
+
+Filter the distances for the minimum value and append the corresponding shop
+names to the values
+Define the dataframe's type as 'shops'
+
+```{r}
+s_n = shops |> 
+  st_drop_geometry() |> 
+  mutate(type = "shops")
+min_dist = colMins(s_rack_d)
+srd_mins = cbind.data.frame(s_n,min_dist)
+```
+
+# Find public school minimums
+
+Filter the distances for the minimum value and append the corresponding school
+names to the values
+Define the dataframe's type as 'public'
+
+```{r}
+p_n = p_sch |> 
+  st_drop_geometry() |> 
+  mutate(type = "public")
+min_dist = colMins(psch_rack_d)
+prd_mins = cbind.data.frame(p_n,min_dist)
+```
+
+# Find independent school minimums
+
+Filter the distances for the minimum value and append the corresponding school
+names to the values
+Define the dataframe's type as 'independent'
+
+```{r}
+i_n = i_sch |> 
+  st_drop_geometry() |> 
+  mutate(type = "independent")
+min_dist = colMins(isch_rack_d)
+ird_mins = cbind.data.frame(i_n,min_dist)
+```
+
+# Combine dataframes
+
+Combine all the dataframes into 'allmins'
+
+Combine the school dataframes into 'schoolmins'
+
+```{r}
+allmins = rbind(srd_mins,ird_mins,prd_mins)
+
+schoolmins = rbind(ird_mins,prd_mins)
+```
+
+# Plot
+
+Plot the various dataframes as histograms to show the relative distances each type 
+of location is from the nearest bikeshare station
+
+Plot all and color by type
+
+```{r}
+allmins |> ggplot(aes(x=min_dist, fill = type)) + geom_histogram(binwidth = 50) + ggtitle("All locations") + xlab("Meters from Nearest Bikestation") + theme_dark()
+```
+
+Plot schools and color by type
+
+```{r}
+schoolmins |> ggplot(aes(x=min_dist, fill = type)) + geom_histogram(binwidth = 50) + ggtitle("All schools") +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+```
+
+Plot the individual location dataframes and color similarly to the 'allmins' plot
+
+```{r}
+srd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "skyblue") + ggtitle("Shops") + ylim(0,25) +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+
+prd_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "green") + ggtitle("Public Schools") + ylim(0,25) +
+  xlab("Meters from Nearest Bikestation") + theme_dark()
+
+ird_mins |> ggplot(aes(x=min_dist)) + geom_histogram(binwidth = 50, color = "tomato") + 
+  ggtitle("Independent Schools") + xlab("Meters from Nearest Bikestation") + ylim(0,25) + 
+  theme_dark()
+```

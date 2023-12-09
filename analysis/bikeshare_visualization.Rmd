@@ -1,0 +1,110 @@
+---
+title: "How the flow of traffic of cars correlates with bike share data"
+output: html_notebook
+---
+
+
+# Introduction
+
+In order to understand where the best place to add bike share stations, it would be helpful to first see a visual of where the current bike share stations are located, where signed bike routes are, and the overall usage of vehicles for people's primary mode of transportation versus public transportation for primary mode of transportation. 
+
+## Load Appropriate Packages
+
+```{r}
+library(knitr)
+library(tidyverse)
+library(janitor)
+library(here) 
+library(sf) 
+library(tmap)
+library(tidycensus)
+```
+Knitr is used for properly transforming the r notebook into an html file.
+The tidyverse is used to tidy data using other packages within in such as dplyr.
+The janitor packages is used to clean up the variable names from the data sets.
+The here library is used to locate files on the computer to make it easier to load in the data sets.
+The sf library is used to work with spatial data.
+The tmap library is used to create interaactive maps.
+The tidycensus data is used to get data from the U.S Census Bureau data via codes. 
+
+## Read in the captial bike share data
+
+```{r}
+bikes = (read.csv(here("data_raw", "202309-capitalbikeshare-tripdata.csv"))) |> clean_names()
+```
+
+# Read in the Captial Bikeshare Station Locations
+
+```{r}
+racks = st_read((here("data_raw", "Capital_Bikeshare_Locations.geojson"))) |> clean_names() 
+```
+ 
+## Api Key to access the census data
+```{r}
+census_api_key("9fc5d3792d3a5e922287c3f4e9995118766d50a2")
+
+```
+
+## Loading in the codes that is linked to access the specific census data 
+```{r}
+v2018 = load_variables(2018, "acs5")
+```
+
+## Load the relevant data from the 2017-2021 Census Data for Washington DC
+
+```{r}
+df_census=get_acs(geography = "tract",
+                  variables=c("vehicles"="B08141_001",
+                              "population" = "B01001_001",
+                               "public_transportion" = "B08006_008"),
+                  state="DC",geometry=TRUE,year=2021) 
+```
+For this analysis, we will need the amount of vehiclces used in a specific location in Washington D.c., the population for each area in Washington D.C., and the usage of public transportation in those same areas. 
+
+## Make sure our data frames plot
+
+```{r}
+plot(df_census)
+plot(racks)
+```
+
+## Make each observation of vehicles, population, and public transportation into their own columns
+
+```{r}
+
+tmap_mode("view")
+
+df_cens=df_census %>% 
+  select(-moe) %>% 
+  pivot_wider(names_from = "variable", 
+              values_from = "estimate")|> 
+  mutate(pub_pop = public_transportion / population,
+         v_pop = vehicles / population)
+
+```
+
+
+## Read the Signed Bike Routes data into a spatial data frame. 
+```{r}
+bike_routes = st_read((here("data_raw", "Signed_Bike_Routes.geojson"))) |> clean_names() 
+```
+
+## Plot data
+```{r}
+df_cens_adj = df_cens |> st_transform(4326)
+bike_routes = st_as_sf(bike_routes, crs=st_crs(df_cens_adj))
+
+racks = st_as_sf(racks, crs=st_crs(df_cens_adj))
+tm_shape(df_cens) +tm_polygons(c("pub_pop", "v_pop"), alpha=.5) + tm_shape(racks) +tm_symbols(size = 0.1, alpha = 0.5) +   
+tm_shape(bike_routes) + tm_lines(col="blue",lwd=1,alpha= 1)
+```
+
+Here, we see two maps of Washington D.C. The map on the right shows the population proportion of people who use public transportation (excluding taxi-cabs), and on the right we see a the population proportion of people who own vehicles. The assumption is that they use these vehicles as the primary method to commute to work, school, or other transportation needs. On both of the maps, the blue lines represent signed bike routes routes. The assumption is that the primary target areas to put more bike share stations should be where the bikes would be the most accessible to ride on. Signed bike routes mean that those areas are most likely the more safe areas to ride bikes in, and the area around would be most accommodating to bike riders. The circles on each map represents the current bike share locations. 
+
+## Data Sources:
+
+Capital Bike Share Bike Racks: https://opendata.dc.gov/datasets/a1f7acf65795451d89f0a38565a975b3_5/about
+Bike Share Data: https://capitalbikeshare.com/system-data
+Signed Bike Routes: https://opendata.dc.gov/explore?collection=Dataset&query=Bike%20Routes
+
+
