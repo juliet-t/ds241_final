@@ -9,7 +9,7 @@ output: html_document
 library(knitr)# enables better documentation
 library(tidyverse)# enables us to have data more usable
 library(janitor)# enables us to clean data
-library(lubridate) # because we will probably see some dates
+library(lubridate) # enable us to use the date-time system
 library(here) # enables ease of retrieval of files of within a directory
 library(sf) # enables us to use spatial data 
 library(tmap)# enables us to us to visualize the spatial data
