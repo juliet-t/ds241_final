@@ -1,0 +1,89 @@
+```{r}
+install.packages(knitr)
+library(knitr)
+
+install.packages(tidyverse)
+library(tidyverse)
+
+install.packages(janitor)
+library(janitor)
+
+install.packages(lubridate)
+library(lubridate)
+
+install.packages(here)
+library(here) 
+
+install.packages(sf)
+library(sf) 
+
+install.packages(tmap)
+library(tmap)
+
+install.packages(tidycens)
+library(tidycensus)
+```
+
+```{r}
+install.packages("leaflet")
+library(leaflet)
+
+install.packages("magrittr")
+library(magrittr)
+
+```
+
+
+```{r}
+#to clear environment if need
+rm(list =ls())
+```
+
+
+```{r}
+# Read the CSV file
+data = read_csv("202309-capitalbikeshare-tripdata.csv") |> clean_names()
+head(data)
+```
+
+```{r}
+#Since there are start and end time for latitude and longitude, condensing this information into a total makes it easier to visualize
+data = 
+  mutate(data,
+      lat_total = end_lat - start_lat,
+      lng_total = end_lng - start_lng
+  )
+```
+
+```{r}
+# Create a new data frame with station names and their traffic counts
+station_traffic <- data %>%
+  group_by(station = start_station_name) %>%
+  summarise(traffic = n()) %>%
+  arrange(desc(traffic))
+```
+
+
+```{r}
+#Filtering out any N/A 
+station_locations <- data %>%
+  distinct(start_station_name, lat_total, lng_total) %>%
+  filter(!is.na(lat_total) & !is.na(lng_total & !is.na(start_station_name)))
+```
+
+```{r}
+names(station_locations)[names(station_locations) == "start_station_name"] <- "station"
+# Merge traffic information with station locations
+station_data = merge.data.frame(station_locations,station_traffic, by = "station", all = TRUE)
+```
+
+```{r}
+# Creating an interactive map to show all traffic routes
+bike_map <- leaflet(data = station_data) %>%
+  addTiles() %>%
+  setView(lng = -77.0369, lat = 38.9072, zoom = 10)
+
+print(bike_map)
+```
+
+  
