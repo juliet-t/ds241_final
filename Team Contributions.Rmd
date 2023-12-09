@@ -8,6 +8,8 @@ The contributions to this project are as follows:
 
 JT: bikeshare_visualization, line 1-112 in Final_Report
 
-JD: Lines 115 - 248 
+JD: Lines 169-300
 
-JOM: Lines 252 - 328
+JOM: Lines 305-381
+
+YG: Lines 119-166 
