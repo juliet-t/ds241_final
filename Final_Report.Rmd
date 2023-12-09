@@ -19,6 +19,8 @@ library(sf)
 library(tmap)
 library(tidycensus)
 library(sp)
+library(leaflet)
+library(magrittr)
 ```
 Knitr is used for properly transforming the r notebook into an html file.
 The tidyverse is used to tidy data using other packages within in such as dplyr.
@@ -28,6 +30,8 @@ The sf library is used to work with spatial data.
 The tmap library is used to create interaactive maps.
 The tidycensus data is used to get data from the U.S Census Bureau data via codes. 
 The sp library allows for the use of CRS to convert degree measurements into meters.
+The leaflet library allows an interactive map for panning and zooming as well as creating map tiles and popups.
+The magrittr library allows the usage of certain pipes such as %>% 
 
 ## Read in the captial bike share data
 
@@ -111,6 +115,55 @@ accessible to ride on. Signed bike routes mean that those areas are most likely 
 areas to ride bikes in, and the area around would be most accommodating to bike riders. The 
 circles on each map represents the current bike share locations. 
 
+
+To create an interactive map of biking traffic routes in Washington D.C. is as follows (after opening up relevant files from above):
+
+```{r}
+#Since there are start and end time for latitude and longitude, condensing this information into a total makes it easier to visualize
+data = 
+  mutate(data,
+      lat_total = end_lat - start_lat,
+      lng_total = end_lng - start_lng
+  )
+```
+
+```{r}
+# Create a new data frame with station names and their traffic counts
+station_traffic <- data %>%
+  group_by(station = start_station_name) %>%
+  summarise(traffic = n()) %>%
+  arrange(desc(traffic))
+```
+
+
+```{r}
+#Filtering out any N/A 
+station_locations <- data %>%
+  distinct(start_station_name, lat_total, lng_total) %>%
+  filter(!is.na(lat_total) & !is.na(lng_total & !is.na(start_station_name)))
+```
+
+```{r}
+names(station_locations)[names(station_locations) == "start_station_name"] <- "station"
+# Merge traffic information with station locations
+station_data = merge.data.frame(station_locations,station_traffic, by = "station", all = TRUE)
+```
+
+```{r}
+# Creating an interactive map to show all traffic routes
+bike_map <- leaflet(data = station_data) %>%
+  addTiles() %>%
+  setView(lng = -77.0369, lat = 38.9072, zoom = 10)
+
+print(bike_map)
+```
+
+In addition to mapped capital bike share station data, we can see the paths that people travel
+along to get to various different shopping centers, schools, etc. around the area. Newer facilities
+may have been built around these station hot-spots and along the bike/walk route to garner foot
+traffic which increase commerce for the city. Not only in making the ground transportation (walking/biking)
+a more pleasant experience (especially for students in these areas), but these routes also serve to inform 
+and bring business to local shops that engage the community. 
 _________________________________________________________________________________________________
 
 # Load DC location data
