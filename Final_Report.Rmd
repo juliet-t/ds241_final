@@ -114,8 +114,7 @@ target areas to put more bike share stations should be where the bikes would be 
 accessible to ride on. Signed bike routes mean that those areas are most likely the more safe 
 areas to ride bikes in, and the area around would be most accommodating to bike riders. The 
 circles on each map represents the current bike share locations. 
-
-
+__________________________________________________________________________________________________________________________________
 To create an interactive map of biking traffic routes in Washington D.C. is as follows (after opening up relevant files from above):
 
 ```{r}
@@ -128,7 +127,8 @@ data =
 ```
 
 ```{r}
-# Create a new data frame with station names and their traffic counts
+# Creating a new data frame with station names and their traffic counts
+#
 station_traffic <- data %>%
   group_by(station = start_station_name) %>%
   summarise(traffic = n()) %>%
@@ -161,9 +161,12 @@ print(bike_map)
 In addition to mapped capital bike share station data, we can see the paths that people travel
 along to get to various different shopping centers, schools, etc. around the area. Newer facilities
 may have been built around these station hot-spots and along the bike/walk route to garner foot
-traffic which increase commerce for the city. Not only in making the ground transportation (walking/biking)
-a more pleasant experience (especially for students in these areas), but these routes also serve to inform 
-and bring business to local shops that engage the community. 
+traffic which increase commerce for the city. By understanding the flow of traffic and destinations, 
+we can interpret much about social migration for these populations. Perhaps their destinations for free-
+periods (such as restaurants, cafes,etc) are also influenced by what is available or within distance from 
+their last train stop or closest to the next one they aim to go on. Not only in making the ground
+transportation (walking/biking) a more pleasant experience (especially for students in these areas), 
+but these routes also serve to inform and bring business to local shops that engage the community. 
 _________________________________________________________________________________________________
 
 # Load DC location data
