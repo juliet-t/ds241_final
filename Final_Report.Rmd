@@ -249,8 +249,84 @@ bikeshare system closer to schools and stores.
 _________________________________________________________________________________________________
 
 
+# we read in the needed data based on the D.C capital bikeshare program,the museums in the D.C area, parks and recreational facilities in the D.C area, and bike racs near the recreational areas. We then view them
+```{r}
+bykes = (read.csv(here("data_raw","202309-capitalbikeshare-tripdata.csv"))) |> clean_names() 
+
+Parks_N_Recs <- st_read(here("data_raw","Parks_and_Recreation_Areas.geojson")) |> clean_names()
+
+Museuems <- st_read(here("data_raw","Museums.geojson")) |> clean_names()
+
+bracks <- st_read(here("data_raw","Public_Bike_Racks.geojson")) |> clean_names()
 
 
+view(Parks_N_Recs)
+view(Museuems)
+view(bracks)
+
+```
+# limit the number of sample size to 100
+```{r}
+
+bykes_sliced <- bykes|> slice_sample(n=100)
+view(bykes_sliced)
+```
+# read census api key, and view 2018 census variables
+```{r eval=FALSE, include=FALSE, install = TRUE}
+census_api_key("8adcbab0823170535252fcf4c508e9cf0bfd09dc")
+view(v2018)
+```
+# we want to access specific census data from 2018
+```{r}
+v2018 <- load_variables(2018,"acs5")
+```
+# We want to gain information from the census data based on the variables vehicles, population, and public_population
+```{r}
+df_census <- get_acs(geography = "tract",
+                    variables = c("vehicles"="B08141_001",
+  "population"="B01001_001",
+  "public_transportation" = "B08006_008"),
+  state ="DC",geometry = TRUE,year = 2021)
+```
+# Mini plots of census,parks n recs, mususems and bike racks data which we generate
+```{r}
+plot(df_census)
+plot(Parks_N_Recs)
+plot(Museuems)
+plot(bracks)
+```
+# we specefically look public transportation, and vehicle density within the D.C area
+```{r}
+tmap_mode("view")
+
+df_census_Pop = df_census %>%
+  select(-moe) %>%
+  pivot_wider(names_from = "variable",
+              values_from = "estimate")|>
+  mutate(pub_pop = public_transportation / population, v_pop = vehicles / population)
+
+
+```
+# We create the vizulation of the musemums,parks and recreational facilities in the D.C area, see the amount of bike racks near said locations, and see the vehicle, and public transporation density based on the population that use these modes of transport
+
+```{r}
+df_census_adjust = df_census |> st_transform(4326)
+Parks_N_Recs = st_as_sf(Parks_N_Recs,crs = st_crs(df_census_adjust))
+bracks = st_as_sf(bracks,crs=st_crs(df_census_adjust))
+museums = st_as_sf(Museuems,crs=st_crs(df_census_adjust))
+
+tm_shape(df_census_Pop) + tm_polygons(c("pub_pop","v_pop"),alpha = .5) + tm_shape(Parks_N_Recs)+
+tm_symbols(col = "green", size=0.08,alpha = 0.5) + tm_shape(museums)+ tm_symbols(col = "violet",
+  size=0.08,alpha = 0.5) + tm_shape(bracks)+ tm_dots(col = "red", size=0.004,alpha = 0.5)
+```
+We see in the map above that, the visualization made depicts areas where  recreation and parks in the D.C area exist in green orbs, museums in purple orbs, and the various bike rack locations in the entire D.C area in the form of red dots. 
+
+Though we can see a majority of bike rack around the D.C area, and mostly in the center area of D.C, which surround areas which have museums, recreation and park facilities. But we do see some patches within the map, where the population of people who tend to drive, and use public transportation, have slightly lesser amounts of bike racks near the Museums recreational and park facilities, which are near the outskirts of town, which was an odd site to see. 
+
+Based On this analysis, the perception given is that the ability to access some museum, recreation and park areas, can be quite difficult if one does not own a car, due to the lack of public transportation in said areas, this is where the DC bike share program make an entrance with a solution, I believe allocating more bike racks across museum, recreation and park facility areas,  could possibly be a positive reinforcement to get more people to ride bikes to and from such areas, which could in-return drive an increase in economic revenue growth, of the D.C government. 
+
+Another reason would be to promote, and draw awareness to healthy recreational bike rides within youth (and possibly the elderly), As according to an observational-study article dubbed "Cycling as a Part of Recreation: An Awareness-Exploring Study" recreational bike rides could lead to mental, and physical health benefits within society, but much work is needed to be done, and this starts with the allocation of an adequate amount bike racks within the various recreational and park areas, which lack them.
+_____________________________________________________________________________________________________
 
 
 ## Data Sources:
@@ -259,3 +335,7 @@ Capital Bike Share Bike Racks: https://opendata.dc.gov/datasets/a1f7acf65795451d
 Bike Share Data: https://capitalbikeshare.com/system-data
 Signed Bike Routes: https://opendata.dc.gov/explore?collection=Dataset&query=Bike%20Routes
 Science Daily Article: https://www.sciencedaily.com/releases/2015/03/150318144504.htm
+Museums: https://opendata.dc.gov/datasets/2e65fc16edc3481989d2cc17e6f8c533_54/explore?location=38.908237%2C-77.029335%2C13.31
+Parks and recreations:
+https://opendata.dc.gov/datasets/DCGIS::parks-and-recreation-areas/explore?location=38.898985%2C-76.948888%2C12.49
+Recreational Biking Article: Uca, M., Alizadehebadi, L. and Yılmaz, S.H. (2021) ‘Cycling as a part of recreation: An awareness-exploring study’, Journal of Educational Issues, 7(3), p. 265. doi:10.5296/jei.v7i3.19152
